@@ -1,0 +1,381 @@
+---
+title: "Homework 6"
+author: "Wenyu Zhang"
+date: "5/20/2021"
+output:
+  bookdown::pdf_document2:
+header-includes: \usepackage{amsmath,amsfonts}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, comment=NA)
+library(bookdown)
+```
+
+```{r, include=FALSE}
+options(tinytex.verbose = TRUE)
+```
+
+
+
+\newpage
+# Problem 7.2
+
+The scatterplot and fitted line is in Figure \@ref(fig:fig1)
+
+The fitted linear model for y versus x is summaried in Table \ref{ab}
+
+The analysis of variance table is Table \ref{cd} 
+
+```{r, echo=FALSE, message=FALSE, fig.cap='y versus x', fig1, fig.width=5, fig.height=4, fig.align='center', results='asis'}
+library(alr4)
+f72=lm(y~x, weights=1/SD^2, data=physics1)
+plot(y~x,data=physics1)
+abline(f72)
+library(xtable)
+options(xtable.comment=FALSE)
+xtable(summary(f72), caption="Summary table", label="ab")
+xtable(anova(f72), caption="F table", label="cd")
+```
+
+In the Table \ref{cd}, the $F$-statistics for the model is 4.30 and the $p$-value is greater than $0.05$, which we should not reject null hypothesis.  
+
+
+\newpage
+# Problem 7.4
+
+7.4.1
+
+Due to the job class size (NE), different employee from different job class has different weight for variance and score is determined by the jobclass. And the weights should be $NE$
+
+7.4.2
+
+The model(without wls) giving a simple polynomial is shown in Figure \ref{fig:fiter}.\newline
+The model(with wls) giving a simple polynomial is shown in Figure \ref{fig:fiter1}.\newline
+
+
+```{r, fiter, fig.cap="Fitted expected response curve without wls", echo=FALSE, message=FALSE, fig.width=4, fig.height=3}
+library(effects)
+f = lm(MaxSalary~poly(Score,4),data=salarygov)
+s0 = seq(82,1017,1)
+y0 = predict(f, newdata=data.frame(Score=s0))
+fd = (salarygov$NW/salarygov$NE >=0.70)
+plot(MaxSalary~Score, data=salarygov)
+lines(s0,y0)
+```
+
+```{r, fiter1, fig.cap="Fitted expected response curve with wls", echo=FALSE, message=FALSE, fig.width=4, fig.height=3}
+library(effects)
+g = lm(MaxSalary~poly(Score,4), weights=NE,data=salarygov)
+s0 = seq(82,1017,1)
+yy = predict(g, newdata=data.frame(Score=s0))
+plot(MaxSalary~Score, data=salarygov)
+lines(s0,yy)
+```
+
+
+A model(without wls) with an interaction with "female dominated" career indicator (FD) is summarized by the effects plot in Figure \ref{fig:ep}.\newline
+A model(with wls) with an interaction with "female dominated" career indicator (FD) is summarized by the effects plot in Figure \ref{fig:eq}.\newline
+
+
+```{r, ep, fig.cap="effects plot without using wls", echo=FALSE, message=FALSE, fig.width=4, fig.height=3}
+f1=lm(MaxSalary~poly(Score,4)*fd, data=salarygov)
+plot(allEffects(f1),lines=list(multiline=TRUE))
+```
+
+
+```{r, eq, fig.cap="effects plot with using wls", echo=FALSE, message=FALSE, fig.width=4, fig.height=3}
+f2 =lm(MaxSalary~poly(Score,4)*fd, weights=NE, data=salarygov)
+plot(allEffects(f2),lines=list(multiline=TRUE))
+```
+
+
+
+The ANOVA table for the model without wls is shown in Table \ref{tab:ANOVA}, indicating that
+there is a significant interaction with the polynomial terms and
+the two-level FD factor.\newline
+The ANOVA table for the model with wls is shown in Table \ref{tab:ANOVA1}, indicating that
+there is a significant interaction with the polynomial terms and
+the two-level FD factor.
+
+
+```{r, results='asis', echo=FALSE, message=FALSE}
+library(xtable)
+options(xtable.comment=FALSE)
+xtable(Anova(f1), caption="Type II ANOVA without using wls", label="tab:ANOVA")
+```
+
+
+```{r, results='asis', echo=FALSE, message=FALSE}
+library(xtable)
+options(xtable.comment=FALSE)
+xtable(Anova(f2), caption="Type II ANOVA with using wls", label="tab:ANOVA1")
+```
+
+
+```{r, results='asis', echo=FALSE, message=FALSE}
+f3=lm(MaxSalary~poly(Score,4)+fd, data=salarygov)
+f4=lm(MaxSalary~poly(Score,4)+fd, weights=NE, data=salarygov)
+q1=confint(f3)[6,]
+q2=confint(f4)[6,]
+```
+
+If we do not use the wls, the 95% confidence interval for the difference between female-dominated job class and all other job class is [`r q1`] \newline
+Using wls, the 95% confidence interval for the difference between female-dominated job class and all other job class is [`r q2`]
+
+
+
+
+\newpage
+# Problem 7.7
+
+7.7.1
+
+The scatterplot of Progeny versus Parent is in Figure \@ref(fig:fig2)
+
+```{r, echo=FALSE, message=FALSE, results='asis', fig.cap='Progeny versus Parent', fig2, fig.width=5, fig.height=4}
+plot(Progeny~Parent, data=galtonpeas)
+```
+
+7.7.2
+
+The fitted mean function on the scatterplot is in Figure \@ref(fig:fig3)
+
+```{r, echo=FALSE, message=FALSE, results='asis', fig.cap='Add the fitted mean function', fig3, fig.width=5, fig.height=4}
+plot(Progeny~Parent, data=galtonpeas)
+f77=lm(Progeny~Parent, data=galtonpeas, weights=1/SD^2)
+abline(f77, col="red")
+f771=lm(Progeny~Parent, data=galtonpeas)
+abline(f771, col="blue",lty=2)
+legend("bottomright", c("WLS","OLS"), col=c("red","blue"), lty=1:2)
+```
+
+
+The model with wls is in Table \ref{ef}
+The model with ols is in Table \ref{gh}
+
+
+
+
+```{r, echo=FALSE, message=FALSE, results='asis'}
+library(xtable)
+options(xtable.comment=FALSE)
+xtable(summary(f77), caption="summary table (wls)", label="ef")
+xtable(summary(f771), caption="summary table (ols)", label="gh")
+```
+
+From the Table \ref{ef}, we can get that the intercept of wls is 12.7964 and the slope of Parent is 0.2048. From the Table \ref{gh}, we can get that the intercept of ols is 12.7029 and the slope of Parent is 0.2100. To some extent, we can conclude that the the ols line is identical to the wls line.\newline
+
+
+7.7.3
+
+The slope will decrease, the variances will increase and differences will be difficult to estimate.
+
+
+
+
+
+
+
+
+\newpage
+# Problem 7.8
+
+7.8.1
+
+The scatterplot of Weight versus Age is in Figure \@ref(fig:fig5)
+
+```{r, echo=FALSE, message=FALSE, results='asis', fig.cap='Weight versus Age', fig5, fig.width=5, fig.height=4}
+plot(Weight~Age, data=jevons)
+f781=lm(Weight~Age, weights=n/SD^2,data=jevons)
+abline(f781)
+```
+
+From the Figure \@ref(fig:fig5), there exists the linear relationship betweeen the Weight and Age. 
+
+The scatterplot of SD versus Age is in Figure \@ref(fig:fig6)
+
+```{r, echo=FALSE, message=FALSE, results='asis', fig.cap='SD versus Age', fig6, fig.width=5, fig.height=4}
+plot(SD~Age, data=jevons)
+f782=lm(SD~Age,weights=n/SD^2,data=jevons)
+abline(f782)
+```
+
+From the Figure \@ref(fig:fig6), there exists the linear relationship between the SD and Age. Also the variance increases with Age.\newline
+
+7.8.2
+
+The fitted WLS model is in Table \ref{hi}
+
+```{r, echo=FALSE, message=FALSE, results='asis'}
+library(xtable)
+options(xtable.comment=FALSE)
+xtable(summary(f781), caption="summary table", label="hi")
+```
+
+The fitted function is $E(Weight|Age)=7.9965-0.0238Age$ \newline
+
+
+7.8.3
+
+```{r, echo=FALSE, message=FALSE, results='asis'}
+c=confint(f781)
+library(xtable)
+options(xtable.comment=FALSE)
+xtable(c, caption="confidence interval for the intercept table", label="jk")
+```
+
+
+Since $E(Weight|Age)=\beta_0-\beta_1Age$, here $Age=0$, from the table \ref{jk}, we can get that the confindence interval for $\beta_0$ is $[7.99, 8.00]$. However, the standard weight of the gold sovereign $7.9876$ is not in that interval. Hence, we can conclude that the fitted regression is not consistent with the known standard weight for a new coin.\newline
+
+
+7.8.4
+
+From the hint in the textbook, we can get that
+$$se.pred(Weight|Age)=\sqrt{(SD^2+(sefit(Wegiht|Age))^2}$$
+
+```{r, echo=FALSE, message=FALSE, results='asis', warning=FALSE}
+y1=predict(f781,data.frame=(jevons$Age=1:5),se.fit=TRUE)
+se.pred=sqrt(jevons$SD^2 + y1$se.fit^2)
+z=(7.9379-predict(f781))/se.pred
+p=pnorm(z)
+```
+
+The probablity for $Age=1,2,3,4,5$ is `r p` , respectively. \newline
+
+
+7.8.5
+
+We want to use the delta method, first we need to find the 
+$$Age=\frac{E(Weight|Age)-\beta_0}{\beta_1}$$
+here we need to take the minimum legal weight which is 7.9379, thus
+$$Age=\frac{7.9379-\beta_0}{\beta_1}$$
+
+```{r, echo=FALSE, message=FALSE, results='asis', warning=FALSE}
+b0=coef(f781)[1]
+b1=coef(f781)[2]
+Names=c("b0","b1")
+d=deltaMethod(f781, "(7.9379-b0)/b1", parameterNames=Names) 
+library(xtable)
+options(xtable.comment=FALSE)
+xtable(d, caption="Delta Method Table", label="de")
+```
+
+From the Table \ref{de}, we can get that the standard error for the estimated age is 0.05.
+
+\newpage
+# Problem 7.9
+
+7.9.1
+
+```{r, echo=FALSE, message=FALSE, results='asis', warning=FALSE}
+t=t.test(log(UN11$fertility))
+t1=t$conf.int
+
+t2=exp(t1)
+```
+
+The 95% confidence interval for the mean of log(fertility) is [`r t1`] and the 95% confidence interval for the mean of fertility is [`r t2`]
+
+
+7.9.2
+
+```{r, echo=FALSE, message=FALSE, results='asis', warning=FALSE}
+library(boot)
+med=function(data, indices){
+  median(data[indices])
+}
+library(boot)
+b1=boot(data=UN11$fertility, statistic=med, R=999) 
+b2=quantile(b1$t[,1],prob=c(0.025,0.975))
+```
+
+Use the bootstrap, we can obtain the 95% confidence interval [`r b2`]
+It is obvious that when we use the bootstrap to obtain the 95% confidence interval, the interval is always narrower than that obtained by linear model.
+
+The Bootstrap distribution is in the Figure \@ref(fig:fig10)
+
+```{r, fig.cap="Bootstrap distribution", fig10}
+hist(b1)
+```
+
+
+\newpage
+# Problem 7.10
+
+7.10.1
+
+For the data file $fuel2001$, the variables $Drivers$ and $FuelC$ are state totals and the $income$ is computed per person. The textbook P15 and P16 recommend to eliminate the effect of size of the state, I redefine the variables $Drivers$, $FuelC$ and $Income$, which are 
+$$Drivers=\frac{1000Drivers}{Pop}$$
+$$FuelC=\frac{1000FuelC}{Pop}$$
+$$Income=\frac{Income}{1000}$$
+
+The confidence interval of the usual large sample OLS estimates is in the Table \ref{lm}
+
+```{r, echo=FALSE, message=FALSE, results='asis', warning=FALSE}
+#Since the variable Income is the per capita personal income, we need to redefine each variable
+
+fuel2001$Drivers=1000*fuel2001$Drivers/fuel2001$Pop
+fuel2001$FuelC=1000*fuel2001$FuelC/fuel2001$Pop
+fuel2001$Income=fuel2001$Income/1000
+
+
+f7101=lm(FuelC~Tax+Drivers+Income+log(Miles), data=fuel2001)
+c1=confint(f7101)
+library(xtable)
+options(xtable.comment=FALSE)
+xtable(c1, caption="confidence interval table", label="lm")
+
+
+
+
+library(boot)
+reg= function(fuel2001,indices){
+  fm=lm(FuelC~Tax+Drivers+Income+log(Miles), data=fuel2001[indices,])
+  return(coefficients(fm))
+}
+bst=boot(data=fuel2001, statistic=reg, R=999)
+b11=quantile(bst$t[,1],prob=c(0.025,0.975))
+b12=quantile(bst$t[,2],prob=c(0.025,0.975))
+b13=quantile(bst$t[,3],prob=c(0.025,0.975))
+b14=quantile(bst$t[,4],prob=c(0.025,0.975))
+b15=quantile(bst$t[,5],prob=c(0.025,0.975))
+```
+
+The bootstrap 95% confidence intervals of the intercept is [`r b11`].\newline
+The bootstrap 95% confidence intervals of the Tax is [`r b12`].\newline
+The bootstrap 95% confidence intervals of the Drivers is [`r b13`].\newline
+The bootstrap 95% confidence intervals of the Income is [`r b14`].\newline
+The bootstrap 95% confidence intervals of the log(Miles) is [`r b15`].\newline
+
+From the results, we can get that the bootstrap confidence intervals are wider.\newline
+
+\newpage
+7.10.2
+
+Histograms of the bootstrap replications for each of the coefficients are in Figure \@ref(fig:fig11).
+
+```{r, echo=FALSE, message=FALSE, results='asis', warning=FALSE, fig.cap="Bootstrap distribution", fig11}
+hist(bst)
+```
+
+From the histogram of the bootstrap replications for each of the coefficients, we can get that the histograms are symmetric. And they look like normally distributed data. The histograms refute the differences between the bootstrap and large sample confidence intervals found in Problem 7.10.1 .\newline
+
+
+
+
+
+# Problem 7.14
+
+```{r, echo=FALSE, message=FALSE, results='asis', warning=FALSE}
+library(boot)
+fit=function(wm1,indices){
+  f714=lm(CSpd ~ RSpd, data=wm1[indices,])
+  return(predict(f714, data.frame(RSpd=7.4285)))
+} 
+results=boot(data=wm1, fit, R=999)
+b714=quantile(results$t[,1], prob=c(0.025, 0.975))
+m=mean(b714)
+```
+
+The bootstrap confidence interval is [`r b714`], and in the problem 2.21.5 the confidence interval is $[8.609,8.902]$.
